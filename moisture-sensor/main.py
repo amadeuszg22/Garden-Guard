@@ -6,23 +6,37 @@ import ujson
 import esp
 import dht
 
-stime = (60000000 * 30)
-def volt():
+class setup():
+	stime = (60000000 * 30)
 	p15 = machine.Pin(15, machine.Pin.OUT)
-	p15.on()
-	time.sleep(1)
 	p15.off()
+	p14 = Pin(14, Pin.OUT)
+	p14.off()
+
+def volt():
+	id ="volt"
+	#setup.p15.on()
+	time.sleep(2)
+	volta = machine.ADC(0)
+	volts = volta.read()
+	v =  ((4.82 / 1023.00) * volts)
+	print ("Battery voltage is:",volts,"V")
+	feed(v,id)
+	#setup.p15.off()
+	
 	
 def mosure():
 	id = "mo"
-	p14 = Pin(14, Pin.OUT)
-	p14.on()
+	setup.p15.on()
+	setup.p14.on()
 	adc = machine.ADC(0)
 	am = adc.read()
 	mp = ((am / 1023.00) * 100)
+	print (am)
 	print("The ground moisure is:", mp, "%")
 	feed(mp,id)
-	p14.off()
+	setup.p14.off()
+	setup.p15.off()
 
 def outtemp():
 	id = "temp"
@@ -40,7 +54,7 @@ def outhum():
 
 def feed(value,mo):
 	if mo == "mo":
-		url ="https://io.adafruit.com/api/v2/Ama_g/feeds/mint-moisture/data.json"
+		url ="https://io.adafruit.com/api/v2/Ama_g/feeds/star-moisture/data.json"
 		headers = {'X-AIO-Key': '98d75633ba0440bebfe5840eedb09847','Content-Type': 'application/json'}
 		data = '{"value": "'+str(value)+'"}'
 		r = requests.post(url, data=data, headers=headers)
@@ -60,19 +74,27 @@ def feed(value,mo):
 		r = requests.post(url, data=data, headers=headers)
 		results = r.json()
 		print(results)
+	if mo == "volt":
+		url ="https://io.adafruit.com/api/v2/Ama_g/feeds/voltage/data.json"
+		headers = {'X-AIO-Key': '98d75633ba0440bebfe5840eedb09847','Content-Type': 'application/json'}
+		data = '{"value": "'+str(value)+'"}'
+		r = requests.post(url, data=data, headers=headers)
+		results = r.json()
+		print(results)
 
 while True:
+	setup()
 	time.sleep(15)
 	if machine.reset_cause() == machine.DEEPSLEEP_RESET:
 		print('woke from a deep sleep')
 	else:
 		print('power on or hard reset')
+	mosure()
 	outtemp()
 	outhum()
 	volt()
-	#mosure()
-	#print("going sleep for:", stime)
-	time.sleep(60)
-	#esp.deepsleep(stime)
+	print("going sleep for:", setup.stime)
+	time.sleep(30)
+	esp.deepsleep(setup.stime)
 
 	
