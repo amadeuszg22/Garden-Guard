@@ -15,28 +15,26 @@ class setup():
 
 def volt():
 	id ="volt"
-	#setup.p15.on()
+	setup.p15.on()
 	time.sleep(2)
 	volta = machine.ADC(0)
 	volts = volta.read()
-	v =  ((4.82 / 1023.00) * volts)
+	v =  (((5 + 2.78) / 1023.00) * volts) #plus 0,48 of voltage drop caused by trasistor IRL5040N 4.82 battery voltage
 	print ("Battery voltage is:",volts,"V")
 	feed(v,id)
-	#setup.p15.off()
+	setup.p15.off()
 	
 	
 def mosure():
 	id = "mo"
-	setup.p15.on()
 	setup.p14.on()
 	adc = machine.ADC(0)
 	am = adc.read()
-	mp = ((am / 1023.00) * 100)
+	mp = (((am -0.342193548) / 1023.00) * 100) # minus transistor amp
 	print (am)
 	print("The ground moisure is:", mp, "%")
 	feed(mp,id)
 	setup.p14.off()
-	setup.p15.off()
 
 def outtemp():
 	id = "temp"
@@ -84,7 +82,7 @@ def feed(value,mo):
 
 while True:
 	setup()
-	time.sleep(15)
+	time.sleep(10)
 	if machine.reset_cause() == machine.DEEPSLEEP_RESET:
 		print('woke from a deep sleep')
 	else:
@@ -94,7 +92,7 @@ while True:
 	outhum()
 	volt()
 	print("going sleep for:", setup.stime)
-	time.sleep(30)
+	time.sleep(9)
 	esp.deepsleep(setup.stime)
 
 	
